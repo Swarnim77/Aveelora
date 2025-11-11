@@ -253,6 +253,7 @@ $recent_orders = $conn->query('SELECT * FROM orders ORDER BY created_at DESC LIM
                 </div>
                 <nav>
                     <a href="dashboard.php">Home</a>
+                    <a href="categories.php">Categories</a>
                     <a href="viewproduct.php">Products</a>
                     <a href="users.php">Users</a>
                     <a href="reports.php">Reports</a>
@@ -286,6 +287,7 @@ $recent_orders = $conn->query('SELECT * FROM orders ORDER BY created_at DESC LIM
             <h2>Quick Actions</h2>
             <div class="quick-actions">
                 <a href="addproduct.php" class="btn">Add New Product</a>
+                <a href="categories.php" class="btn">Manage Categories</a>
                 <a href="viewproduct.php" class="btn">Manage Products</a>
                 <a href="users.php" class="btn">Manage Users</a>
                 <a href="settings.php" class="btn">Settings</a>

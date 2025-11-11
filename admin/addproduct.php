@@ -6,9 +6,21 @@ if(!isset($_SESSION['user']) || $_SESSION['user']['role']!=='admin'){
     exit; 
 }
 $msg='';
+// Ensure categories table exists (with image column)
+$conn->query("CREATE TABLE IF NOT EXISTS categories (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100) UNIQUE, image VARCHAR(200) DEFAULT 'placeholder_dark.png')");
+// Ensure image column exists for older deployments
+$hasImageColRes = $conn->query("SHOW COLUMNS FROM categories LIKE 'image'");
+if($hasImageColRes && $hasImageColRes->num_rows === 0){
+	$conn->query("ALTER TABLE categories ADD COLUMN image VARCHAR(200) DEFAULT 'placeholder_dark.png'");
+}
+// Load categories
+$catOptions = $conn->query("SELECT name FROM categories ORDER BY name ASC")->fetch_all(MYSQLI_ASSOC);
 if($_SERVER['REQUEST_METHOD']==='POST'){
   $name=$conn->real_escape_string($_POST['name']); 
-  $cat=$conn->real_escape_string($_POST['category']);
+  $selectedCat=trim($_POST['category'] ?? '');
+  $newCat=trim($_POST['new_category'] ?? '');
+  $catName = $newCat !== '' ? $newCat : $selectedCat;
+  $cat=$conn->real_escape_string($catName);
   $price = floatval($_POST['price']); 
   $desc = $conn->real_escape_string($_POST['description']);
   $imgname = basename($_FILES['image']['name'] ?? '');
@@ -16,6 +28,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     move_uploaded_file($_FILES['image']['tmp_name'], __DIR__ . '/../assets/images/'. $imgname);
   } else { 
     $imgname='placeholder_dark.png'; 
+  }
+  // Persist category if new
+  if($catName !== ''){
+    $stmtc = $conn->prepare('INSERT IGNORE INTO categories(name) VALUES (?)');
+    $stmtc->bind_param('s',$catName);
+    $stmtc->execute();
   }
   $stmt = $conn->prepare('INSERT INTO products (name,category,price,description,image) VALUES (?,?,?,?,?)');
   $stmt->bind_param('ssdss',$name,$cat,$price,$desc,$imgname);
@@ -266,7 +284,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 
                 <div class="form-group">
                     <label for="category">Category *</label>
-                    <input type="text" id="category" name="category" required>
+                    <select id="category" name="category" required>
+                        <option value="" disabled selected>Select a category</option>
+                        <?php foreach($catOptions as $co): ?>
+                            <option value="<?= htmlspecialchars($co['name']) ?>"><?= htmlspecialchars($co['name']) ?></option>
+                        <?php endforeach; ?>
+                        <option value="__new__">+ Add new category...</option>
+                    </select>
+                    <input type="text" id="new_category" name="new_category" placeholder="New category name" style="display:none; margin-top:10px;">
                 </div>
                 
                 <div class="form-group">
@@ -297,3 +322,22 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     </footer>
 </body>
 </html>
+<script>
+(function(){
+    const sel = document.getElementById('category');
+    const newInput = document.getElementById('new_category');
+    if(sel && newInput){
+        sel.addEventListener('change', function(){
+            if(this.value === '__new__'){
+                newInput.style.display = 'block';
+                newInput.required = true;
+                newInput.focus();
+            } else {
+                newInput.style.display = 'none';
+                newInput.required = false;
+                newInput.value = '';
+            }
+        });
+    }
+})();
+</script>

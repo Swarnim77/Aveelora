@@ -5,6 +5,22 @@ if(!isset($_SESSION['user']) || $_SESSION['user']['role']!=='admin'){
     header('Location: ../login.php'); 
     exit; 
 }
+
+// Handle delete product (POST)
+$message = '';
+if($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '') === 'delete_product'){
+    $pid = intval($_POST['product_id'] ?? 0);
+    if($pid > 0){
+        $stmt = $conn->prepare('DELETE FROM products WHERE id=?');
+        $stmt->bind_param('i',$pid);
+        if($stmt->execute()){
+            $message = '<div class="message" style="background:#e8f5e9;color:#256029;border:1px solid #c8e6c9;">Product deleted.</div>';
+        } else {
+            $message = '<div class="message" style="background:#ffebee;color:#b71c1c;border:1px solid #ffcdd2;">Failed to delete.</div>';
+        }
+    }
+}
+
 $res = $conn->query('SELECT * FROM products');
 $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
 ?>
@@ -127,6 +143,8 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
         .btn:active {
             transform: translateY(0);
         }
+        .btn-danger { background-color: #d32f2f; }
+        .btn-danger:hover { background-color: #b71c1c; }
         
         /* Table Styles */
         table {
@@ -228,6 +246,7 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
             <h2>Manage Products</h2>
             <a href="addproduct.php" class="btn">Add New Product</a>
             <a href="dashboard.php" class="btn" style="background-color: #666;">Back to Dashboard</a>
+            <?= $message ?>
             <?php if($res->num_rows > 0): ?>
                 <table>
                     <thead>
@@ -236,6 +255,7 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
                             <th>Name</th>
                             <th>Category</th>
                             <th>Price</th>
+                            <th style="width:160px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -245,6 +265,13 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
                                 <td><?= htmlspecialchars($p['name']) ?></td>
                                 <td><?= htmlspecialchars($p['category']) ?></td>
                                 <td>Rs. <?= htmlspecialchars($p['price']) ?></td>
+                                <td>
+                                    <form method="post" onsubmit="return confirm('Delete this product?');" style="display:inline;">
+                                        <input type="hidden" name="action" value="delete_product">
+                                        <input type="hidden" name="product_id" value="<?= $p['id'] ?>">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>

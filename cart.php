@@ -416,7 +416,11 @@ function displayCart() {
         
         // Handle image path
         let imageSrc = item.image;
-        if (imageSrc && !imageSrc.startsWith('http') && !imageSrc.startsWith('/') && !imageSrc.startsWith('data:')) {
+	if (imageSrc && 
+		!imageSrc.startsWith('http') && 
+		!imageSrc.startsWith('/') && 
+		!imageSrc.startsWith('data:') &&
+		!imageSrc.startsWith('assets/images/')) {
             imageSrc = 'assets/images/' + imageSrc;
         }
         
