@@ -64,7 +64,7 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
     
     .hero .tag {
         font-size: 20px;
-        color: #666;
+        color: #bd2424ff;
         margin-bottom: 30px;
     }
     

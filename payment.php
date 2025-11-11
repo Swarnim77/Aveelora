@@ -109,7 +109,7 @@ include 'includes/header.php';
 		</div>
 
         <!-- eSewa Payment Option -->
-        <div class="payment-option">
+        <!-- <div class="payment-option">
             <h3>Pay Online - eSewa</h3>
             <form method="POST" action="esewa_pay.php">
                 <input type="hidden" name="tAmt" value="<?= $total ?>">
@@ -124,7 +124,7 @@ include 'includes/header.php';
                 <button type="submit" class="btn">Pay with eSewa</button>
             </form>
             <p class="muted">eSewa test mode (demo).</p>
-        </div>
+        </div> -->
 
         <!-- Cash on Delivery -->
         <div class="payment-option">
