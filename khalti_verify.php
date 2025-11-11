@@ -18,6 +18,7 @@ $token = $data['token'] ?? '';
 $amount = intval($data['amount'] ?? 0);
 $name = trim($data['name'] ?? 'Guest');
 $address = trim($data['address'] ?? 'Not provided');
+$mobile = trim($data['mobile'] ?? '');
 
 if ($token === '' || $amount <= 0) {
 	echo json_encode(['success' => false, 'message' => 'Missing token or amount']);
@@ -79,18 +80,20 @@ if ($httpCode !== 200 || !is_array($resp) || !isset($resp['idx'])) {
 $user_id = isset($_SESSION['user']) ? intval($_SESSION['user']['id']) : NULL;
 $items_json = $conn->real_escape_string(json_encode(array_map(function($pid) use ($conn, $cart){
 	$pid = intval($pid);
-	$sr = $conn->query("SELECT id, name, price FROM products WHERE id=$pid")->fetch_assoc();
+	$sr = $conn->query("SELECT id, name, price, image FROM products WHERE id=$pid")->fetch_assoc();
 	return [
 		'id' => $sr['id'],
 		'name' => $sr['name'],
 		'qty' => $cart[$pid],
-		'price' => $sr['price']
+		'price' => $sr['price'],
+		'image' => $sr['image']
 	];
 }, array_keys($cart))));
 
 $txn_id = $conn->real_escape_string($resp['idx']);
-$query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, created_at) 
-		  VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'PAID_KHALTI', '" . $conn->real_escape_string($name) . "', '" . $conn->real_escape_string($address) . "', NOW())";
+$conn->query("ALTER TABLE orders ADD COLUMN mobile VARCHAR(30) NULL");
+$query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, mobile, created_at) 
+		  VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'PAID_KHALTI', '" . $conn->real_escape_string($name) . "', '" . $conn->real_escape_string($address) . "', '" . $conn->real_escape_string($mobile) . "', NOW())";
 @mysqli_query($conn, $query);
 $orderId = $conn->insert_id;
 

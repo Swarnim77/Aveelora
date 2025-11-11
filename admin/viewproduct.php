@@ -22,7 +22,8 @@ if($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '') === 'delete_p
 }
 
 $res = $conn->query('SELECT * FROM products');
-$orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
+$conn->query("ALTER TABLE orders ADD COLUMN mobile VARCHAR(30) NULL");
+$orders_res = $conn->query("SELECT * FROM orders WHERE status NOT IN ('COMPLETED','CANCELLED') ORDER BY created_at DESC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -286,6 +287,11 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
         <!-- Orders Section -->
 		<div class="content-card">
             <h2>Orders</h2>
+			<div style="margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap;">
+				<a class="btn" href="orders_completed.php">Completed Orders</a>
+				<a class="btn" href="orders_cancelled.php" style="background:#666;">Cancelled Orders</a>
+				<a class="btn" href="print_orders.php?status=PENDING" target="_blank">Print Pending Bills</a>
+			</div>
             <?php if($orders_res->num_rows > 0): ?>
                 <table>
                     <thead>
@@ -293,9 +299,12 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
                             <th>ID</th>
 							<th>Name</th>
 							<th>Address</th>
+							<th>Mobile</th>
+							<th>Products</th>
                             <th>Status</th>
                             <th>Total</th>
                             <th>Created</th>
+							<th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -304,9 +313,85 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
                                 <td><?= htmlspecialchars($o['id']) ?></td>
 								<td><?= htmlspecialchars($o['name']) ?></td>
 								<td><?= htmlspecialchars($o['address']) ?></td>
+								<td><?= htmlspecialchars($o['mobile']) ?></td>
+								<td style="max-width:400px;">
+									<?php
+									$items = json_decode($o['items'], true) ?: [];
+									if (!$items) {
+										echo '<span style="color:#999;">-</span>';
+									} else {
+										echo '<div style="display:flex;flex-direction:column;gap:8px;">';
+										foreach ($items as $it) {
+											$img = isset($it['image']) && $it['image'] ? $it['image'] : null;
+											$price = isset($it['price']) ? floatval($it['price']) : 0;
+											if (!$img) {
+												// fallback to current product image
+												$pid = intval($it['id']);
+												$pr = $conn->query("SELECT image FROM products WHERE id=".$pid);
+												if ($pr && $pr->num_rows) {
+													$row = $pr->fetch_assoc();
+													$img = $row['image'];
+												}
+											}
+											$src = $img;
+											if ($src && strpos($src, 'http') !== 0 && strpos($src, 'assets/images/') !== 0) {
+												$src = '../assets/images/' . $src;
+											}
+											echo '<div style="display:flex;align-items:center;gap:10px;">';
+											echo '<img src="'.htmlspecialchars($src ?: '../assets/images/placeholder_dark.png').'" alt="'.htmlspecialchars($it['name']).'" style="width:46px;height:46px;object-fit:cover;border-radius:4px;border:1px solid #eee;">';
+											echo '<div style="color:#333;">'.htmlspecialchars($it['name']).' x '.intval($it['qty']).'<div style="color:#666;font-size:12px;">Rs. '.number_format($price,2).'</div></div>';
+											echo '</div>';
+										}
+										echo '</div>';
+									}
+									?>
+									<?php if ($items): ?>
+									<button type="button" class="btn" style="margin-top:8px;padding:6px 10px;font-size:13px;" onclick="var d=document.getElementById('od<?= $o['id'] ?>'); d.style.display = d.style.display==='none' ? 'block' : 'none';">View Details</button>
+									<div id="od<?= $o['id'] ?>" style="display:none;margin-top:8px;border:1px solid #eee;border-radius:6px;padding:8px;">
+										<table style="width:100%;border-collapse:collapse;">
+											<thead>
+												<tr>
+													<th style="text-align:left;padding:6px;border-bottom:1px solid #eee;">Product</th>
+													<th style="text-align:right;padding:6px;border-bottom:1px solid #eee;">Price</th>
+													<th style="text-align:right;padding:6px;border-bottom:1px solid #eee;">Qty</th>
+													<th style="text-align:right;padding:6px;border-bottom:1px solid #eee;">Line Total</th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php $dynTotal = 0.0; foreach($items as $it): $ip = floatval($it['price']); $iq = intval($it['qty']); $lt = $ip * $iq; $dynTotal += $lt; ?>
+													<tr>
+														<td style="padding:6px;border-bottom:1px solid #f3f3f3;"><?= htmlspecialchars($it['name']) ?></td>
+														<td style="padding:6px;border-bottom:1px solid #f3f3f3;text-align:right;">Rs. <?= number_format($ip,2) ?></td>
+														<td style="padding:6px;border-bottom:1px solid #f3f3f3;text-align:right;"><?= $iq ?></td>
+														<td style="padding:6px;border-bottom:1px solid #f3f3f3;text-align:right;">Rs. <?= number_format($lt,2) ?></td>
+													</tr>
+												<?php endforeach; ?>
+											</tbody>
+											<tfoot>
+												<tr>
+													<td colspan="3" style="padding:6px;text-align:right;"><strong>Computed Total</strong></td>
+													<td style="padding:6px;text-align:right;"><strong>Rs. <?= number_format($dynTotal,2) ?></strong></td>
+												</tr>
+											</tfoot>
+										</table>
+									</div>
+									<?php endif; ?>
+								</td>
                                 <td><?= htmlspecialchars($o['status']) ?></td>
                                 <td>Rs. <?= htmlspecialchars($o['total_amount']) ?></td>
                                 <td><?= htmlspecialchars($o['created_at']) ?></td>
+								<td>
+									<form method="post" action="order_update.php" style="display:inline;">
+										<input type="hidden" name="order_id" value="<?= $o['id'] ?>">
+										<input type="hidden" name="status" value="COMPLETED">
+										<button type="submit" class="btn">Mark Completed</button>
+									</form>
+									<form method="post" action="order_update.php" style="display:inline;">
+										<input type="hidden" name="order_id" value="<?= $o['id'] ?>">
+										<input type="hidden" name="status" value="CANCELLED">
+										<button type="submit" class="btn btn-danger">Cancel</button>
+									</form>
+								</td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>

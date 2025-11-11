@@ -92,6 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
                     }
                     echo '</ul>';
                     echo '<p style="margin-top:10px;"><strong>Total: Rs. '.$total.'</strong></p>';
+                    if (!empty($order['mobile'])) {
+                        echo '<p style="margin-top:6px;color:#555;">Mobile: <strong>'.htmlspecialchars($order['mobile']).'</strong></p>';
+                    }
                     echo '<p style="margin-top:6px;color:#555;">Status: <strong>'.htmlspecialchars($order['status']).'</strong></p>';
                     ?>
                     <?php if($order['status']!=='CANCELLED'): ?>

@@ -13,6 +13,8 @@ if (!$user) {
 	exit;
 }
 
+$conn->query("ALTER TABLE orders ADD COLUMN mobile VARCHAR(30) NULL");
+
 $cart = $_SESSION['cart'] ?? [];
 if (!$cart) {
     // Redirect before sending any HTML output
@@ -35,17 +37,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cod'])) {
     $user_id = isset($_SESSION['user']) ? intval($_SESSION['user']['id']) : NULL;
     $name = $conn->real_escape_string($_POST['name'] ?? 'Guest');
     $address = $conn->real_escape_string($_POST['address'] ?? 'Not provided');
-    $items_json = $conn->real_escape_string(json_encode(array_map(function ($p) use ($cart) { 
+	$mobile = $conn->real_escape_string($_POST['mobile'] ?? '');
+	$items_json = $conn->real_escape_string(json_encode(array_map(function ($p) use ($cart) { 
         return [
             'id' => $p['id'],
             'name' => $p['name'],
             'qty' => $cart[$p['id']],
-            'price' => $p['price']
+			'price' => $p['price'],
+			'image' => $p['image']
         ]; 
     }, $items)));
     
-    $query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, created_at) 
-              VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'COD', '" . $name . "', '" . $address . "', NOW())";
+	$query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, mobile, created_at) 
+			  VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'COD', '" . $name . "', '" . $address . "', '" . $mobile . "', NOW())";
     
 	@mysqli_query($conn, $query);
 	$oid = $conn->insert_id;
@@ -104,6 +108,9 @@ include 'includes/header.php';
 				<label>Address:
 					<input type="text" id="kh-address" required>
 				</label>
+				<label>Mobile:
+					<input type="tel" id="kh-mobile" placeholder="98XXXXXXXX" pattern="[0-9]{8,15}" required>
+				</label>
 				<button type="button" class="btn" id="khalti-button">Pay with Khalti</button>
 			</form>
 		</div>
@@ -137,6 +144,9 @@ include 'includes/header.php';
                 <label>Address:
                     <input type="text" name="address" required>
                 </label>
+				<label>Mobile:
+					<input type="tel" name="mobile" placeholder="98XXXXXXXX" pattern="[0-9]{8,15}" required>
+				</label>
                 <button type="submit" class="btn">💵 Confirm COD</button>
             </form>
         </div>
@@ -176,6 +186,7 @@ function window_location() {
 				onSuccess: function(payload) {
 					var name = document.getElementById('kh-name').value.trim();
 					var address = document.getElementById('kh-address').value.trim();
+					var mobile = document.getElementById('kh-mobile').value.trim();
 					if(!name || !address){
 						alert('Please enter name and address.');
 						return;
@@ -187,7 +198,8 @@ function window_location() {
 							token: payload.token,
 							amount: amountPaisa,
 							name: name,
-							address: address
+							address: address,
+							mobile: mobile
 						})
 					}).then(function(r){ return r.json(); })
 					.then(function(res){

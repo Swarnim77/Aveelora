@@ -8,9 +8,12 @@ if(!isset($_SESSION['user']) || $_SESSION['user']['role']!=='admin'){
 
 // Get report data
 $total_orders = $conn->query('SELECT COUNT(*) as count FROM orders')->fetch_assoc()['count'];
-$total_revenue = $conn->query('SELECT SUM(total_amount) as total FROM orders WHERE status = "Paid"')->fetch_assoc()['total'] ?? 0;
-$cod_orders = $conn->query('SELECT COUNT(*) as count FROM orders WHERE status = "COD"')->fetch_assoc()['count'];
-$paid_orders = $conn->query('SELECT COUNT(*) as count FROM orders WHERE status = "Paid"')->fetch_assoc()['count'];
+// Revenue: sum of orders marked COMPLETED by admin
+$revRow = $conn->query("SELECT SUM(total_amount) as total FROM orders WHERE status = 'COMPLETED'")->fetch_assoc();
+$total_revenue = $revRow && $revRow['total'] !== null ? floatval($revRow['total']) : 0.0;
+$cod_orders = $conn->query("SELECT COUNT(*) as count FROM orders WHERE status = 'COD'")->fetch_assoc()['count'];
+// Online paid (Khalti) before completion
+$paid_orders = $conn->query("SELECT COUNT(*) as count FROM orders WHERE status = 'PAID_KHALTI'")->fetch_assoc()['count'];
 $total_products = $conn->query('SELECT COUNT(*) as count FROM products')->fetch_assoc()['count'];
 $total_users = $conn->query('SELECT COUNT(*) as count FROM users')->fetch_assoc()['count'];
 
@@ -351,9 +354,9 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
         <!-- Sales Summary -->
         <div class="content-card">
             <h2>Sales Summary</h2>
-            <p style="color: #666; margin-bottom: 15px;">Total Revenue from Paid Orders: <strong style="color: #88A71C;">Rs. <?= number_format($total_revenue, 2) ?></strong></p>
+            <p style="color: #666; margin-bottom: 15px;">Total Revenue (Completed Orders): <strong style="color: #88A71C;">Rs. <?= number_format($total_revenue, 2) ?></strong></p>
             <p style="color: #666; margin-bottom: 15px;">Total Orders: <strong><?= $total_orders ?></strong></p>
-            <p style="color: #666; margin-bottom: 15px;">Average Order Value: <strong>Rs. <?= $total_orders > 0 ? number_format($total_revenue / $total_orders, 2) : '0.00' ?></strong></p>
+            <p style="color: #666; margin-bottom: 15px;">Average Order Value (Revenue/Orders): <strong>Rs. <?= $total_orders > 0 ? number_format($total_revenue / $total_orders, 2) : '0.00' ?></strong></p>
         </div>
     </main>
 
