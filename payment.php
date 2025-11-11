@@ -35,6 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cod'])) {
     $user_id = isset($_SESSION['user']) ? intval($_SESSION['user']['id']) : NULL;
     $name = $conn->real_escape_string($_POST['name'] ?? 'Guest');
     $address = $conn->real_escape_string($_POST['address'] ?? 'Not provided');
+    $phone = trim($_POST['phone'] ?? '');
+
+    // Ensure phone column exists
+    @mysqli_query($conn, "ALTER TABLE orders ADD COLUMN phone VARCHAR(30) NULL");
+
+    if($phone === ''){
+        $message = 'Phone number is required for COD orders.';
+    } else {
     $items_json = $conn->real_escape_string(json_encode(array_map(function ($p) use ($cart) { 
         return [
             'id' => $p['id'],
@@ -44,16 +52,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cod'])) {
         ]; 
     }, $items)));
     
-    $query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, created_at) 
-              VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'COD', '" . $name . "', '" . $address . "', NOW())";
+        $stmt = $conn->prepare("INSERT INTO orders (user_id, items, total_amount, status, name, address, phone, created_at) VALUES (?,?,?,?,?,?,?, NOW())");
+        $status = 'COD';
+        $stmt->bind_param('isdssss', $user_id, $items_json, $total, $status, $name, $address, $phone);
+        @$stmt->execute();
     
-	@mysqli_query($conn, $query);
-	$oid = $conn->insert_id;
-	$_SESSION['cart'] = [];
+        $oid = $conn->insert_id;
+        $_SESSION['cart'] = [];
 
-    // Redirect safely before HTML
-	header("Location: final.php?oid=" . urlencode($oid));
-    exit;
+        // Redirect safely before HTML
+        header("Location: final.php?oid=" . urlencode($oid));
+        exit;
+    }
 }
 
 // ✅ Safe to include header now (HTML starts here)
@@ -104,6 +114,9 @@ include 'includes/header.php';
 				<label>Address:
 					<input type="text" id="kh-address" required>
 				</label>
+                <label>Phone:
+                    <input type="tel" id="kh-phone" required>
+                </label>
 				<button type="button" class="btn" id="khalti-button">Pay with Khalti</button>
 			</form>
 		</div>
@@ -136,6 +149,9 @@ include 'includes/header.php';
                 </label>
                 <label>Address:
                     <input type="text" name="address" required>
+                </label>
+                <label>Phone:
+                    <input type="tel" name="phone" required>
                 </label>
                 <button type="submit" class="btn">💵 Confirm COD</button>
             </form>
@@ -176,8 +192,9 @@ function window_location() {
 				onSuccess: function(payload) {
 					var name = document.getElementById('kh-name').value.trim();
 					var address = document.getElementById('kh-address').value.trim();
-					if(!name || !address){
-						alert('Please enter name and address.');
+                    var phone = document.getElementById('kh-phone').value.trim();
+					if(!name || !address || !phone){
+						alert('Please enter name, address and phone.');
 						return;
 					}
 					fetch('khalti_verify.php', {
@@ -187,7 +204,8 @@ function window_location() {
 							token: payload.token,
 							amount: amountPaisa,
 							name: name,
-							address: address
+							address: address,
+                            phone: phone
 						})
 					}).then(function(r){ return r.json(); })
 					.then(function(res){
@@ -213,8 +231,9 @@ function window_location() {
 		khaltiBtn.addEventListener('click', function(){
 			var name = document.getElementById('kh-name').value.trim();
 			var address = document.getElementById('kh-address').value.trim();
-			if(!name || !address){
-				alert('Please enter name and address.');
+            var phone = document.getElementById('kh-phone').value.trim();
+			if(!name || !address || !phone){
+				alert('Please enter name, address and phone.');
 				return;
 			}
 			if(!publicKey){

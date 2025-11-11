@@ -18,9 +18,14 @@ $token = $data['token'] ?? '';
 $amount = intval($data['amount'] ?? 0);
 $name = trim($data['name'] ?? 'Guest');
 $address = trim($data['address'] ?? 'Not provided');
+$phone = trim($data['phone'] ?? '');
 
 if ($token === '' || $amount <= 0) {
 	echo json_encode(['success' => false, 'message' => 'Missing token or amount']);
+	exit;
+}
+if ($phone === '') {
+	echo json_encode(['success' => false, 'message' => 'Phone is required']);
 	exit;
 }
 
@@ -89,9 +94,11 @@ $items_json = $conn->real_escape_string(json_encode(array_map(function($pid) use
 }, array_keys($cart))));
 
 $txn_id = $conn->real_escape_string($resp['idx']);
-$query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, created_at) 
-		  VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'PAID_KHALTI', '" . $conn->real_escape_string($name) . "', '" . $conn->real_escape_string($address) . "', NOW())";
-@mysqli_query($conn, $query);
+@mysqli_query($conn, "ALTER TABLE orders ADD COLUMN phone VARCHAR(30) NULL");
+$stmt = $conn->prepare("INSERT INTO orders (user_id, items, total_amount, status, name, address, phone, created_at) VALUES (?,?,?,?,?,?,?, NOW())");
+$status = 'PAID_KHALTI';
+$stmt->bind_param('isdssss', $user_id, $items_json, $total, $status, $name, $address, $phone);
+@$stmt->execute();
 $orderId = $conn->insert_id;
 
 // Clear cart
