@@ -321,6 +321,8 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
                     <thead>
                         <tr>
                             <th>Order ID</th>
+                            <th>Name</th>
+                            <th>Address</th>
                             <th>Status</th>
                             <th>Total Amount</th>
                             <th>Created At</th>
@@ -330,6 +332,8 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
                         <?php foreach($recent_orders as $order): ?>
                             <tr>
                                 <td><?= htmlspecialchars($order['id']) ?></td>
+                                <td><?= htmlspecialchars($order['name']) ?></td>
+                                <td><?= htmlspecialchars($order['address']) ?></td>
                                 <td><?= htmlspecialchars($order['status']) ?></td>
                                 <td>Rs. <?= htmlspecialchars($order['total_amount']) ?></td>
                                 <td><?= htmlspecialchars($order['created_at']) ?></td>

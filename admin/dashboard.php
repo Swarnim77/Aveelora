@@ -294,7 +294,7 @@ $recent_orders = $conn->query('SELECT * FROM orders ORDER BY created_at DESC LIM
             </div>
         </div>
 
-        <!-- Recent Orders -->
+		<!-- Recent Orders -->
         <div class="content-card">
             <h2>Recent Orders</h2>
             <?php if(count($recent_orders) > 0): ?>
@@ -302,6 +302,8 @@ $recent_orders = $conn->query('SELECT * FROM orders ORDER BY created_at DESC LIM
                     <thead>
                         <tr>
                             <th>Order ID</th>
+							<th>Name</th>
+							<th>Address</th>
                             <th>Status</th>
                             <th>Total Amount</th>
                             <th>Created At</th>
@@ -311,6 +313,8 @@ $recent_orders = $conn->query('SELECT * FROM orders ORDER BY created_at DESC LIM
                         <?php foreach($recent_orders as $order): ?>
                             <tr>
                                 <td><?= htmlspecialchars($order['id']) ?></td>
+								<td><?= htmlspecialchars($order['name']) ?></td>
+								<td><?= htmlspecialchars($order['address']) ?></td>
                                 <td><?= htmlspecialchars($order['status']) ?></td>
                                 <td>Rs. <?= htmlspecialchars($order['total_amount']) ?></td>
                                 <td><?= htmlspecialchars($order['created_at']) ?></td>

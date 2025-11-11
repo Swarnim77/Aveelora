@@ -6,6 +6,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+$user = $_SESSION['user'] ?? null;
+if (!$user) {
+	// Must be logged in to proceed to payment
+	header("Location: login.php");
+	exit;
+}
+
 $cart = $_SESSION['cart'] ?? [];
 if (!$cart) {
     // Redirect before sending any HTML output
@@ -40,11 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cod'])) {
     $query = "INSERT INTO orders (user_id, items, total_amount, status, name, address, created_at) 
               VALUES (" . ($user_id ? $user_id : 'NULL') . ", '" . $items_json . "', " . $total . ", 'COD', '" . $name . "', '" . $address . "', NOW())";
     
-    @mysqli_query($conn, $query);
-    $_SESSION['cart'] = [];
+	@mysqli_query($conn, $query);
+	$oid = $conn->insert_id;
+	$_SESSION['cart'] = [];
 
     // Redirect safely before HTML
-    header("Location: final.php");
+	header("Location: final.php?oid=" . urlencode($oid));
     exit;
 }
 
@@ -85,6 +93,21 @@ include 'includes/header.php';
     </div>
 
     <div class="payment-options">
+		<!-- Khalti Payment Option -->
+		<div class="payment-option">
+			<h3>Pay Online - Khalti</h3>
+			<p class="muted">Secure payment via Khalti Checkout (test mode).</p>
+			<form id="khalti-form" class="payment-form" onsubmit="return false;">
+				<label>Name:
+					<input type="text" id="kh-name" required>
+				</label>
+				<label>Address:
+					<input type="text" id="kh-address" required>
+				</label>
+				<button type="button" class="btn" id="khalti-button">Pay with Khalti</button>
+			</form>
+		</div>
+
         <!-- eSewa Payment Option -->
         <div class="payment-option">
             <h3>Pay Online - eSewa</h3>
@@ -133,3 +156,73 @@ function window_location() {
     return $protocol . $domain . $path;
 }
 ?>
+
+<!-- Khalti Checkout -->
+<script src="https://khalti.com/static/khalti-checkout.js"></script>
+<script>
+(function(){
+	try {
+		var khaltiBtn = document.getElementById('khalti-button');
+		if(!khaltiBtn) return;
+		var amountPaisa = <?= intval($total * 100) ?>; // Khalti expects amount in paisa
+		var publicKey = ''; // Demo: add your own TEST public key if available
+		var config = {
+			publicKey: publicKey,
+			productIdentity: 'order_' + Date.now(),
+			productName: 'Aveelora Order',
+			productUrl: <?= json_encode(window_location() . '/payment.php') ?>,
+			amount: amountPaisa,
+			eventHandler: {
+				onSuccess: function(payload) {
+					var name = document.getElementById('kh-name').value.trim();
+					var address = document.getElementById('kh-address').value.trim();
+					if(!name || !address){
+						alert('Please enter name and address.');
+						return;
+					}
+					fetch('khalti_verify.php', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							token: payload.token,
+							amount: amountPaisa,
+							name: name,
+							address: address
+						})
+					}).then(function(r){ return r.json(); })
+					.then(function(res){
+						if(res && res.success){
+							var oid = res.order_id ? ('?oid=' + encodeURIComponent(res.order_id)) : '';
+							window.location.href = 'final.php' + oid;
+						} else {
+							alert((res && res.message) ? res.message : 'Payment verification failed.');
+						}
+					}).catch(function(){
+						alert('Network error during verification.');
+					});
+				},
+				onError: function(error) {
+					console.error(error);
+					alert('Khalti payment failed.');
+				},
+				onClose: function() {
+				}
+			}
+		};
+		var checkout = new KhaltiCheckout(config);
+		khaltiBtn.addEventListener('click', function(){
+			var name = document.getElementById('kh-name').value.trim();
+			var address = document.getElementById('kh-address').value.trim();
+			if(!name || !address){
+				alert('Please enter name and address.');
+				return;
+			}
+			if(!publicKey){
+				alert('Demo: Add your Khalti TEST public key to enable the widget.');
+				return;
+			}
+			checkout.show({ amount: amountPaisa });
+		});
+	} catch(e) { }
+})();
+</script>

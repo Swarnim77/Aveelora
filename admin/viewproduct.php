@@ -284,13 +284,15 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
         </div>
 
         <!-- Orders Section -->
-        <div class="content-card">
+		<div class="content-card">
             <h2>Orders</h2>
             <?php if($orders_res->num_rows > 0): ?>
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
+							<th>Name</th>
+							<th>Address</th>
                             <th>Status</th>
                             <th>Total</th>
                             <th>Created</th>
@@ -300,6 +302,8 @@ $orders_res = $conn->query('SELECT * FROM orders ORDER BY created_at DESC');
                         <?php while($o = $orders_res->fetch_assoc()): ?>
                             <tr>
                                 <td><?= htmlspecialchars($o['id']) ?></td>
+								<td><?= htmlspecialchars($o['name']) ?></td>
+								<td><?= htmlspecialchars($o['address']) ?></td>
                                 <td><?= htmlspecialchars($o['status']) ?></td>
                                 <td>Rs. <?= htmlspecialchars($o['total_amount']) ?></td>
                                 <td><?= htmlspecialchars($o['created_at']) ?></td>
