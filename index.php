@@ -174,6 +174,7 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
             }
             ?>
         </div>
+        
     </section>
 
     <!-- Products grid removed to keep dashboard category-focused -->
