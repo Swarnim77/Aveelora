@@ -232,7 +232,7 @@ $publicKey = getenv('KHALTI_PUBLIC_KEY') ?: (defined('KHALTI_PUBLIC_KEY') ? KHAL
                     <input type="text" name="address" required>
                 </label>
                 <label>Phone:
-                    <input type="tel" phone="phone" required pattern="[0-9+\-\s]{7,20}">
+                    <input type="tel" name="phone" required pattern="[0-9+\-\s]{7,20}">
                 </label>
                 <button type="submit" class="btn">💵 Confirm COD</button>
             </form>
