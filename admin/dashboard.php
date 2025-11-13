@@ -24,7 +24,7 @@ $cancelled_orders = $conn->query("SELECT * FROM orders WHERE UPPER(status)='CANC
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Aveelora</title>
+    <title>Admin Dashboard - Paisa Satne Thau</title>
     <style>
         * {
             margin: 0;
@@ -34,7 +34,7 @@ $cancelled_orders = $conn->query("SELECT * FROM orders WHERE UPPER(status)='CANC
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #123897ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -122,7 +122,7 @@ $cancelled_orders = $conn->query("SELECT * FROM orders WHERE UPPER(status)='CANC
         .stat-card .stat-value {
             font-size: 36px;
             font-weight: bold;
-            color: #88A71C;
+            color: #1c2ca7ff;
         }
         
         /* Content Card */
@@ -138,20 +138,20 @@ $cancelled_orders = $conn->query("SELECT * FROM orders WHERE UPPER(status)='CANC
             color: #333;
             margin-bottom: 20px;
             font-size: 24px;
-            border-bottom: 2px solid #88A71C;
+            border-bottom: 2px solid #1c2ca7ff;
             padding-bottom: 10px;
         }
         
         /* Tabs */
         .tabs { display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
         .tab-btn { background:#f0f3e0; color:#333; border:1px solid #dfe7b3; padding:8px 14px; border-radius:20px; cursor:pointer; font-size:14px; }
-        .tab-btn.active { background:#88A71C; color:#fff; border-color:#88A71C; }
+        .tab-btn.active { background:#1c2ca7ff; color:#fff; border-color:#1c2ca7ff; }
         .tab-panel { display:none; }
         .tab-panel.active { display:block; }
         
         /* Buttons */
         .btn {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -263,7 +263,7 @@ $cancelled_orders = $conn->query("SELECT * FROM orders WHERE UPPER(status)='CANC
             <div class="header-content">
                 <div>
                     <h1 class="header-title">Admin Dashboard</h1>
-                    <p style="color: #666; font-size: 14px;">Welcome, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'Admin') ?></p>
+                    <p style="color: #666; font-size: 14px;">Namaskar, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'Admin') ?></p>
                 </div>
                 <nav>
                     <a href="dashboard.php">Home</a>
@@ -530,7 +530,7 @@ $cancelled_orders = $conn->query("SELECT * FROM orders WHERE UPPER(status)='CANC
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Aveelora Admin Dashboard. All rights reserved.</p>
+        <p>&copy; 2025 Paisa Satne Thau Admin Dashboard. All rights reserved.</p>
         <p>Administrative Panel</p>
     </footer>
 </body>

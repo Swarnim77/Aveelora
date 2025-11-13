@@ -1,7 +1,6 @@
 <?php
 require 'includes/db.php';
 include 'includes/header.php';
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 $user = $_SESSION['user'] ?? null;
 $oid = intval($_GET['oid'] ?? 0);
@@ -47,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
     }
     
     .thank-you h1 {
-        color: #88A71C;
+        color: #1c2ca7ff;
         font-size: 36px;
         margin-bottom: 20px;
     }
@@ -59,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
     }
     
     .thank-you a {
-        color: #88A71C;
+        color: #1c2ca7ff;
         text-decoration: none;
         font-weight: 500;
     }
@@ -92,6 +91,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
                     }
                     echo '</ul>';
                     echo '<p style="margin-top:10px;"><strong>Total: Rs. '.$total.'</strong></p>';
+                    if (!empty($order['mobile'])) {
+                        echo '<p style="margin-top:6px;color:#555;">Mobile: <strong>'.htmlspecialchars($order['mobile']).'</strong></p>';
+                    }
+                    if (!empty($order['payment_reference'])) {
+                        echo '<p style="margin-top:6px;color:#555;">Transaction ID: <strong>'.htmlspecialchars($order['payment_reference']).'</strong></p>';
+                    }
                     echo '<p style="margin-top:6px;color:#555;">Status: <strong>'.htmlspecialchars($order['status']).'</strong></p>';
                     ?>
                     <?php if($order['status']!=='CANCELLED'): ?>
@@ -111,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
                 <p>Your order has been placed successfully.</p>
                 <p>Check admin panel to view orders (demo).</p>
                 <p style="margin-top: 30px;">
-                    <a href="index.php" class="btn">Back to</a>
+                    <a href="index.php" class="btn">Back to Home</a>
                 </p>
             </div>
         <?php endif; ?>

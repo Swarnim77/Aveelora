@@ -34,7 +34,7 @@ if(!$p){
     }
     
     .product-info .price {
-        color: #88A71C;
+        color: #1c2ca7ff;
         font-size: 28px;
         font-weight: bold;
         margin-bottom: 20px;
@@ -69,7 +69,7 @@ if(!$p){
     
     .product-form input[type="number"]:focus {
         outline: none;
-        border-color: #88A71C;
+        border-color: #1c2ca7ff;
         box-shadow: 0 0 0 2px rgba(136, 167, 28, 0.2);
     }
     
@@ -157,7 +157,7 @@ function updateCartCount() {
             const countSpan = document.createElement('span');
             countSpan.className = 'cart-count';
             countSpan.style.marginLeft = '5px';
-            countSpan.style.backgroundColor = '#88A71C';
+            countSpan.style.backgroundColor = '#1c2ca7ff';
             countSpan.style.color = 'white';
             countSpan.style.borderRadius = '50%';
             countSpan.style.padding = '2px 8px';

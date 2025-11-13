@@ -121,7 +121,7 @@ if($selectedCat !== ''){
     <title>Manage Categories - Admin</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Calibri','Roboto','Poppins',sans-serif; background:#f5f5dc; min-height:100vh; display:flex; flex-direction:column; }
+        body { font-family:'Calibri','Roboto','Poppins',sans-serif; background:#979712ff; min-height:100vh; display:flex; flex-direction:column; }
         header { background:#d3d3d3; padding:20px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
         .header-container { max-width:1200px; margin:0 auto; padding:0 20px; }
         .header-content { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
@@ -131,10 +131,10 @@ if($selectedCat !== ''){
         nav a:hover { background:rgba(0,0,0,0.1); }
         main { flex:1; max-width:1200px; width:100%; margin:30px auto; padding:0 20px; }
         .content-card { background:white; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:30px; }
-        .content-card h2 { color:#333; margin-bottom:20px; font-size:24px; border-bottom:2px solid #88A71C; padding-bottom:10px; }
+        .content-card h2 { color:#333; margin-bottom:20px; font-size:24px; border-bottom:2px solid #1c2ca7ff; padding-bottom:10px; }
         .form-row { display:flex; gap:10px; flex-wrap:wrap; }
         .form-row input { padding:12px; border:1px solid #ddd; border-radius:6px; font-size:16px; }
-        .btn { background:#88A71C; color:#fff; padding:10px 16px; border:none; border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; text-decoration:none; display:inline-block; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+        .btn { background:#1c2ca7ff; color:#fff; padding:10px 16px; border:none; border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; text-decoration:none; display:inline-block; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
         .btn:hover { background:#7A951A; }
         .btn-danger { background:#d32f2f; }
         .btn-danger:hover { background:#b71c1c; }
@@ -253,7 +253,7 @@ if($selectedCat !== ''){
     </main>
 
     <footer style="background:#000;color:#fff;text-align:center;padding:20px;margin-top:auto;">
-        <p>&copy; 2025 Aveelora Admin Dashboard. All rights reserved.</p>
+        <p>&copy; 2025 Paisa Satne ThauAdmin Dashboard. All rights reserved.</p>
         <p>Administrative Panel</p>
     </footer>
 </body>

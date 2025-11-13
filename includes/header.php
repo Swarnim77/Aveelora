@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aveelora - Beautiful Accessories</title>
+    <title >Paisa Satne Thau - Harek Brand ka Currency</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@ if (session_status() === PHP_SESSION_NONE) {
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #123397ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -53,7 +53,7 @@ if (session_status() === PHP_SESSION_NONE) {
         }
         
         .logo:hover {
-            color: #88A71C;
+            color: #1c2ca7ff;
         }
         
         nav {
@@ -93,7 +93,7 @@ if (session_status() === PHP_SESSION_NONE) {
         
         /* Buttons */
         .btn {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -154,13 +154,13 @@ if (session_status() === PHP_SESSION_NONE) {
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #88A71C;
+            border-color: #1c2ca7ff;
             box-shadow: 0 0 0 2px rgba(136, 167, 28, 0.2);
         }
         
         /* Cart Count Badge */
         .cart-count {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             border-radius: 50%;
             padding: 2px 8px;
@@ -187,41 +187,69 @@ if (session_status() === PHP_SESSION_NONE) {
         }
     </style>
     <script>
-        // Initialize cart count on header load
-        function initCartCount() {
-            try {
-                const cart = JSON.parse(localStorage.getItem('cart')) || [];
-                const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                const cartCountElements = document.querySelectorAll('.cart-count');
-                cartCountElements.forEach(el => {
-                    el.textContent = count;
-                    if (count > 0) {
-                        el.style.display = 'inline-block';
-                    } else {
-                        el.style.display = 'none';
+        (function () {
+            function readStoredCart() {
+                try {
+                    const raw = localStorage.getItem('cart');
+                    if (!raw) {
+                        return [];
                     }
-                });
-            } catch (e) {
-                // localStorage might not be available
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        return parsed;
+                    }
+                    if (parsed && typeof parsed === 'object') {
+                        return Object.keys(parsed).map(function (key) {
+                            const value = parsed[key];
+                            return typeof value === 'object' ? value : { id: key, quantity: Number(value) || 0 };
+                        });
+                    }
+                } catch (err) {
+                    return [];
+                }
+                return [];
             }
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initCartCount);
-        } else {
-            initCartCount();
-        }
+
+            window.getStoredCart = function () {
+                return readStoredCart();
+            };
+
+            window.updateCartCount = function () {
+                const cart = readStoredCart();
+                const count = cart.reduce(function (sum, item) {
+                    const qty = typeof item === 'object' && item !== null ? Number(item.quantity || 0) : 0;
+                    return sum + (qty > 0 ? qty : 0);
+                }, 0);
+                document.querySelectorAll('.cart-count').forEach(function (el) {
+                    el.textContent = count;
+                    el.style.display = count > 0 ? 'inline-block' : 'none';
+                });
+            };
+
+            function initCartCount() {
+                if (typeof window.updateCartCount === 'function') {
+                    window.updateCartCount();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCartCount);
+            } else {
+                initCartCount();
+            }
+        })();
     </script>
 </head>
 <body>
     <header>
         <div class="header-container">
             <div class="header-content">
-                <a href="index.php" class="logo">Aveelora</a>
+                <a href="index.php" class="logo">Paisa Satne Thau</a>
                 <nav>
                     <a href="index.php">Home</a>
-                    <a href="cart.php">Cart <span class="cart-count" style="background-color: #88A71C; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; margin-left: 5px; display: none;">0</span></a>
+                    <a href="cart.php">Cart<span class="cart-count" style="background-color: #1c2ca7ff; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; margin-left: 5px; display: none;">0</span></a>
                     <?php if(isset($_SESSION['user'])): ?>
-                        <span class="user">Hello, <?=htmlspecialchars($_SESSION['user']['name'])?></span>
+                        <span class="user">Namaste, <?=htmlspecialchars($_SESSION['user']['name'])?></span>
                         <a href="logout.php">Logout</a>
                         <?php if($_SESSION['user']['role']==='admin'): ?><a href="admin/dashboard.php">Admin</a><?php endif; ?>
                     <?php else: ?>

@@ -38,7 +38,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   $stmt = $conn->prepare('INSERT INTO products (name,category,price,description,image) VALUES (?,?,?,?,?)');
   $stmt->bind_param('ssdss',$name,$cat,$price,$desc,$imgname);
   if($stmt->execute()) {
-    $msg='<span style="color: #88A71C; font-weight: bold;">Product added successfully!</span>';
+    $msg='<span style="color: #1c2ca7ff; font-weight: bold;">Product added successfully!</span>';
   } else {
     $msg='<span style="color: #d32f2f; font-weight: bold;">Error adding product.</span>';
   }
@@ -59,7 +59,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #979712ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -133,7 +133,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             color: #333;
             margin-bottom: 20px;
             font-size: 24px;
-            border-bottom: 2px solid #88A71C;
+            border-bottom: 2px solid #1c2ca7ff;
             padding-bottom: 10px;
         }
         
@@ -169,13 +169,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #88A71C;
+            border-color: #1c2ca7ff;
             box-shadow: 0 0 0 2px rgba(136, 167, 28, 0.2);
         }
         
         /* Buttons */
         .btn {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -317,7 +317,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Aveelora Admin Dashboard. All rights reserved.</p>
+        <p>&copy; 2025 Paisa Satne Thau Admin Dashboard. All rights reserved.</p>
         <p>Administrative Panel</p>
     </footer>
 </body>

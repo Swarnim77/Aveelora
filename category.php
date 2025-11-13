@@ -76,7 +76,7 @@ $products = $res->fetch_all(MYSQLI_ASSOC);
     .product-card img { width: 100%; height: 220px; object-fit: cover; }
     .product-card-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
     .product-card-body h3 { color: #333; font-size: 18px; }
-    .product-card-body .price { color: #88A71C; font-size: 20px; font-weight: 700; }
+    .product-card-body .price { color: #1c2ca7ff; font-size: 20px; font-weight: 700; }
     .qty-row { display: flex; align-items: center; gap: 8px; }
     .qty-row input[type="number"] {
         width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;

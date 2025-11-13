@@ -32,7 +32,7 @@ $total = floatval($order['total_amount'] ?? $subtotal);
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Invoice #<?= htmlspecialchars($order['id']) ?> - Aveelora</title>
+	<title>Invoice #<?= htmlspecialchars($order['id']) ?> - Currency exchange Nepal</title>
 	<style>
 		body{ font-family:'Calibri','Roboto','Poppins',sans-serif; background:#fff; color:#333; }
 		.invoice-wrapper{ max-width:800px; margin:30px auto; padding:30px; border:1px solid #ddd; border-radius:8px; }
@@ -47,7 +47,7 @@ $total = floatval($order['total_amount'] ?? $subtotal);
 		.total{ text-align:right; margin-top:15px; font-size:18px; }
 		.footer{ text-align:center; margin-top:30px; color:#333; font-weight:600; }
 		.actions{ text-align:right; margin:10px 0 20px; }
-		.btn{ background:#88A71C; color:#fff; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-size:14px; }
+		.btn{ background:#1c2ca7ff; color:#fff; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-size:14px; }
 		.btn:hover{ background:#7A951A; }
 		@media print{
 			.actions{ display:none; }
@@ -62,10 +62,10 @@ $total = floatval($order['total_amount'] ?? $subtotal);
 			<a class="btn" href="dashboard.php" style="text-decoration:none; display:inline-block; margin-left:6px;">Back</a>
 		</div>
 		<div class="header">
-			<h1>Aveelora Nepal</h1>
+			<h1>Currency Exchange Nepal</h1>
 		</div>
-        <div class="subheader">
-            Number is: <?= htmlspecialchars($order['phone'] ?? '') ?>
+        <div class="subheader"; style="font-size: 7px">
+            <h1 >Contact Number: 9862425643</h1>
         </div>
 		<div class="subheader">
 			Invoice for Order #<?= htmlspecialchars($order['id']) ?>
@@ -79,6 +79,7 @@ $total = floatval($order['total_amount'] ?? $subtotal);
 			<div>
 				<div><strong>Customer:</strong> <?= htmlspecialchars($order['name']) ?></div>
 				<div><strong>Address:</strong> <?= htmlspecialchars($order['address']) ?></div>
+				<!-- <div><strong>Contact number:</strong> <?= htmlspecialchars($order['phone']) ?></div> -->
 			</div>
 		</div>
 
@@ -109,6 +110,7 @@ $total = floatval($order['total_amount'] ?? $subtotal);
 
 		<div class="total">
 			<div>Subtotal: <strong>Rs. <?= number_format($subtotal,2) ?></strong></div>
+			<div>Paid: <strong>Rs. 0</strong></div>
 			<div>Total Amount: <strong>Rs. <?= number_format($total,2) ?></strong></div>
 			<div>Payment Status: <strong><?= htmlspecialchars($order['status']) ?></strong></div>
 		</div>

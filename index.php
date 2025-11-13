@@ -57,14 +57,14 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
     
     .hero h1 {
         font-size: 48px;
-        color: #333;
+        color: #ffffffff;
         margin-bottom: 10px;
         font-weight: bold;
     }
     
     .hero .tag {
         font-size: 20px;
-        color: #666;
+        color: #ffffffff;
         margin-bottom: 30px;
     }
     
@@ -91,7 +91,7 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
     .search-row input:focus,
     .search-row select:focus {
         outline: none;
-        border-color: #88A71C;
+        border-color: #2c44b0ff;
         box-shadow: 0 0 0 2px rgba(136, 167, 28, 0.2);
     }
     
@@ -133,7 +133,7 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
     }
     
     .product-card-body .price {
-        color: #88A71C;
+        color: #2a1ca7ff;
         font-size: 24px;
         font-weight: bold;
         margin-bottom: 15px;
@@ -153,12 +153,12 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
 
 <main>
     <div class="hero">
-        <h1>Aveelora</h1>
-        <p class="tag">Welcome Beautiful Souls</p>
+        <h1>Namaskar Daju Bhai haru</h1>
+        <p class="tag">Paisa Satnus China Nagari</p>
     </div>
 
     <section class="content-card" style="margin-bottom: 30px;">
-        <h2 style="margin-bottom:16px; color:#333;">Shop by Category</h2>
+        <h2 style="margin-bottom:16px; color:#333;">Hami Sanga Bhako Currencies</h2>
         <div class="categories">
             <?php
             if(count($categories)===0){
@@ -179,8 +179,5 @@ $categories = $catsRes ? $catsRes->fetch_all(MYSQLI_ASSOC) : [];
 
     <!-- Products grid removed to keep dashboard category-focused -->
 </main>
-
-<!-- no product list JS needed on index; cart count handled globally -->
-<script src="assets/script.js"></script>
 
 <?php include 'includes/footer.php'; ?>

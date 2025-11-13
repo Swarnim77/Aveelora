@@ -18,7 +18,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Aveelora</title>
+    <title>Login - Paisa Satne Thau</title>
     <style>
         * {
             margin: 0;
@@ -28,7 +28,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #124197ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -125,12 +125,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         
         .form-group input:focus {
             outline: none;
-            border-color: #88A71C;
+            border-color: #1c2ca7ff;
             box-shadow: 0 0 0 2px rgba(136, 167, 28, 0.2);
         }
         
         .btn {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -170,7 +170,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
         
         .login-link a {
-            color: #88A71C;
+            color: #1c2ca7ff;
             text-decoration: none;
             font-weight: 500;
         }
@@ -209,7 +209,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     <header>
         <div class="header-container">
             <div class="header-content">
-                <a href="index.php" class="logo">Aveelora</a>
+                <a href="index.php" class="logo">Paisa Satne Thau</a>
                 <nav>
                     <a href="index.php">Home</a>
                     <a href="login.php">Login</a>
@@ -243,8 +243,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     </main>
     
     <footer>
-        <p>&copy; 2025 Aveelora.np | All Rights Reserved</p>
-        <p>Beautiful Accessories for Beautiful Souls</p>
+        <p>&copy; 2025 Currency Exchange.np | All Rights Reserved</p>
+        <p>24 ghantai Paisa Sata Sat</p>
     </footer>
 </body>
 </html>

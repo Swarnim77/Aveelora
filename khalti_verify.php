@@ -14,18 +14,28 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);
-$token = $data['token'] ?? '';
-$amount = intval($data['amount'] ?? 0);
-$name = trim($data['name'] ?? 'Guest');
-$address = trim($data['address'] ?? 'Not provided');
+
+if (!is_array($data)) {
+	echo json_encode(['success' => false, 'message' => 'Malformed request payload']);
+	exit;
+}
+
+$token = isset($data['token']) ? trim((string) $data['token']) : '';
+$amount = isset($data['amount']) ? (int) $data['amount'] : 0;
+$name = trim($data['name'] ?? '');
+$address = trim($data['address'] ?? '');
 $phone = trim($data['phone'] ?? '');
 
 if ($token === '' || $amount <= 0) {
 	echo json_encode(['success' => false, 'message' => 'Missing token or amount']);
 	exit;
 }
-if ($phone === '') {
-	echo json_encode(['success' => false, 'message' => 'Phone is required']);
+if ($name === '' || $address === '' || $phone === '') {
+	echo json_encode(['success' => false, 'message' => 'Name, address and phone are required']);
+	exit;
+}
+if (!preg_match('/^[0-9+\-\s]{7,20}$/', $phone)) {
+	echo json_encode(['success' => false, 'message' => 'Invalid phone number']);
 	exit;
 }
 
@@ -35,13 +45,55 @@ if (!$cart) {
 	echo json_encode(['success' => false, 'message' => 'Empty cart']);
 	exit;
 }
-$ids = implode(',', array_map('intval', array_keys($cart)));
-$res = $conn->query("SELECT id, price FROM products WHERE id IN ($ids)");
-$total = 0;
-while ($r = $res->fetch_assoc()) {
-	$total += $r['price'] * $cart[$r['id']];
+$ids = array_keys($cart);
+if (!$ids) {
+	echo json_encode(['success' => false, 'message' => 'Empty cart']);
+	exit;
 }
-if (intval($total * 100) !== $amount) {
+$idsSql = implode(',', array_map('intval', $ids));
+$res = $conn->query("SELECT id, name, price, image FROM products WHERE id IN ($idsSql)");
+if (!$res) {
+	echo json_encode(['success' => false, 'message' => 'Could not load cart items']);
+	exit;
+}
+$total = 0;
+$dbItems = [];
+while ($r = $res->fetch_assoc()) {
+	$pid = (int) $r['id'];
+	$qty = (int) ($cart[$pid] ?? 0);
+	if ($qty <= 0) {
+		continue;
+	}
+	$dbItems[$pid] = $r;
+	$total += (float) $r['price'] * $qty;
+}
+$res->free();
+
+if (!$dbItems) {
+	echo json_encode(['success' => false, 'message' => 'Cart items unavailable']);
+	exit;
+}
+
+$expectedItemCount = 0;
+foreach ($cart as $qty) {
+	if ((int) $qty > 0) {
+		$expectedItemCount++;
+	}
+}
+
+$validCart = [];
+foreach ($dbItems as $pid => $product) {
+	$validCart[$pid] = max(1, (int) $cart[$pid]);
+}
+if (count($validCart) !== $expectedItemCount) {
+	$_SESSION['cart'] = $validCart;
+	echo json_encode(['success' => false, 'message' => 'Some cart items are no longer available']);
+	exit;
+}
+$_SESSION['cart'] = $validCart;
+
+$expectedAmount = (int) round($total * 100);
+if ($expectedAmount !== $amount) {
 	echo json_encode(['success' => false, 'message' => 'Amount mismatch']);
 	exit;
 }
@@ -81,25 +133,59 @@ if ($httpCode !== 200 || !is_array($resp) || !isset($resp['idx'])) {
 }
 
 // Create order
-$user_id = isset($_SESSION['user']) ? intval($_SESSION['user']['id']) : NULL;
-$items_json = $conn->real_escape_string(json_encode(array_map(function($pid) use ($conn, $cart){
-	$pid = intval($pid);
-	$sr = $conn->query("SELECT id, name, price FROM products WHERE id=$pid")->fetch_assoc();
-	return [
-		'id' => $sr['id'],
-		'name' => $sr['name'],
-		'qty' => $cart[$pid],
-		'price' => $sr['price']
+$orderItemsPayload = [];
+foreach ($dbItems as $pid => $product) {
+	$orderItemsPayload[] = [
+		'id' => $pid,
+		'name' => $product['name'],
+		'qty' => $validCart[$pid],
+		'price' => (float) $product['price'],
+		'image' => $product['image'],
 	];
-}, array_keys($cart))));
+}
 
-$txn_id = $conn->real_escape_string($resp['idx']);
-@mysqli_query($conn, "ALTER TABLE orders ADD COLUMN phone VARCHAR(30) NULL");
-$stmt = $conn->prepare("INSERT INTO orders (user_id, items, total_amount, status, name, address, phone, created_at) VALUES (?,?,?,?,?,?,?, NOW())");
+$itemsJson = json_encode($orderItemsPayload, JSON_UNESCAPED_UNICODE);
+if ($itemsJson === false) {
+	echo json_encode(['success' => false, 'message' => 'Failed to serialize cart items']);
+	exit;
+}
+
+ensureOrdersColumn($conn, 'mobile', 'VARCHAR(30) NULL');
+ensureOrdersColumn($conn, 'payment_reference', 'VARCHAR(100) NULL');
+
+$user_id = isset($_SESSION['user']) ? intval($_SESSION['user']['id']) : NULL;
 $status = 'PAID_KHALTI';
-$stmt->bind_param('isdssss', $user_id, $items_json, $total, $status, $name, $address, $phone);
-@$stmt->execute();
-$orderId = $conn->insert_id;
+$paymentReference = $resp['idx'];
+$stmt = $conn->prepare(
+	'INSERT INTO orders (user_id, items, total_amount, status, name, address, mobile, payment_reference, created_at)
+	 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+);
+
+if (!$stmt) {
+	echo json_encode(['success' => false, 'message' => 'Failed to create order']);
+	exit;
+}
+
+$stmt->bind_param(
+	'isdsssss',
+	$user_id,
+	$itemsJson,
+	$total,
+	$status,
+	$name,
+	$address,
+	$phone,
+	$paymentReference
+);
+
+if (!$stmt->execute()) {
+	$stmt->close();
+	echo json_encode(['success' => false, 'message' => 'Failed to save order']);
+	exit;
+}
+
+$orderId = $stmt->insert_id ?: $conn->insert_id;
+$stmt->close();
 
 // Clear cart
 $_SESSION['cart'] = [];

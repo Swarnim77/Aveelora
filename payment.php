@@ -1,73 +1,148 @@
 <?php
 require 'includes/db.php';
 
-// ✅ Start session safely (no warning if already active)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 $user = $_SESSION['user'] ?? null;
 if (!$user) {
-	// Must be logged in to proceed to payment
-	header("Location: login.php");
-	exit;
-}
-
-$cart = $_SESSION['cart'] ?? [];
-if (!$cart) {
-    // Redirect before sending any HTML output
-    header("Location: index.php");
+    header('Location: login.php');
     exit;
 }
 
-// Get cart items
-$ids = implode(',', array_map('intval', array_keys($cart)));
-$res = $conn->query("SELECT * FROM products WHERE id IN ($ids)");
-$items = [];
-$total = 0;
-while ($r = $res->fetch_assoc()) { 
-    $items[] = $r; 
-    $total += $r['price'] * $cart[$r['id']]; 
+// Ensure columns needed for order metadata exist.
+ensureOrdersColumn($conn, 'mobile', 'VARCHAR(30) NULL');
+ensureOrdersColumn($conn, 'payment_reference', 'VARCHAR(100) NULL');
+
+$cart = $_SESSION['cart'] ?? [];
+if (!$cart) {
+    header('Location: index.php');
+    exit;
 }
 
-// ✅ Handle "Cash on Delivery" form before output
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cod'])) {
-    $user_id = isset($_SESSION['user']) ? intval($_SESSION['user']['id']) : NULL;
-    $name = $conn->real_escape_string($_POST['name'] ?? 'Guest');
-    $address = $conn->real_escape_string($_POST['address'] ?? 'Not provided');
-    $phone = trim($_POST['phone'] ?? '');
+$cartIds = array_keys($cart);
+if (!$cartIds) {
+    header('Location: index.php');
+    exit;
+}
 
-    // Ensure phone column exists
-    @mysqli_query($conn, "ALTER TABLE orders ADD COLUMN phone VARCHAR(30) NULL");
+$idsList = implode(',', array_map('intval', $cartIds));
+$productQuery = $conn->query("SELECT id, name, price, image FROM products WHERE id IN ($idsList)");
+if (!$productQuery) {
+    $_SESSION['cart'] = [];
+    header('Location: cart.php');
+    exit;
+}
 
-    if($phone === ''){
-        $message = 'Phone number is required for COD orders.';
-    } else {
-    $items_json = $conn->real_escape_string(json_encode(array_map(function ($p) use ($cart) { 
-        return [
-            'id' => $p['id'],
-            'name' => $p['name'],
-            'qty' => $cart[$p['id']],
-            'price' => $p['price']
-        ]; 
-    }, $items)));
-    
-        $stmt = $conn->prepare("INSERT INTO orders (user_id, items, total_amount, status, name, address, phone, created_at) VALUES (?,?,?,?,?,?,?, NOW())");
-        $status = 'COD';
-        $stmt->bind_param('isdssss', $user_id, $items_json, $total, $status, $name, $address, $phone);
-        @$stmt->execute();
-    
-        $oid = $conn->insert_id;
-        $_SESSION['cart'] = [];
+$items = [];
+$total = 0.0;
+while ($row = $productQuery->fetch_assoc()) {
+    $pid = (int) $row['id'];
+    $quantity = (int) ($cart[$pid] ?? 0);
+    if ($quantity <= 0) {
+        continue;
+    }
+    $items[$pid] = $row;
+    $rowPrice = (float) $row['price'];
+    $total += $rowPrice * $quantity;
+}
+$productQuery->free();
 
-        // Redirect safely before HTML
-        header("Location: final.php?oid=" . urlencode($oid));
-        exit;
+if (!$items) {
+    $_SESSION['cart'] = [];
+    header('Location: cart.php');
+    exit;
+}
+
+$expectedItemCount = 0;
+foreach ($cart as $qty) {
+    if ((int) $qty > 0) {
+        $expectedItemCount++;
     }
 }
 
-// ✅ Safe to include header now (HTML starts here)
+$validCart = [];
+foreach ($items as $pid => $product) {
+    $validCart[$pid] = max(1, (int) $cart[$pid]);
+}
+if (count($validCart) !== $expectedItemCount) {
+    $_SESSION['cart'] = $validCart;
+    header('Location: cart.php');
+    exit;
+}
+$_SESSION['cart'] = $validCart;
+$cart = $validCart;
+
+$orderItemsPayload = [];
+foreach ($items as $pid => $product) {
+    $orderItemsPayload[] = [
+        'id' => $pid,
+        'name' => $product['name'],
+        'qty' => $validCart[$pid],
+        'price' => (float) $product['price'],
+        'image' => $product['image'],
+    ];
+}
+
+$itemsJson = json_encode($orderItemsPayload, JSON_UNESCAPED_UNICODE);
+if ($itemsJson === false) {
+    $_SESSION['cart'] = [];
+    header('Location: cart.php');
+    exit;
+}
+
+$codError = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cod'])) {
+    $userId = isset($_SESSION['user']) ? (int) $_SESSION['user']['id'] : null;
+    $name = trim($_POST['name'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+
+    if ($name === '' || $address === '' || $phone === '') {
+        $codError = 'Please provide name, address, and phone number.';
+    } elseif (!preg_match('/^[0-9+\-\s]{7,20}$/', $phone)) {
+        $codError = 'Please enter a valid phone number.';
+    } else {
+        $status = 'COD_PENDING';
+        $paymentReference = null;
+        $stmt = $conn->prepare(
+            'INSERT INTO orders (user_id, items, total_amount, status, name, address, mobile, payment_reference, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+        );
+
+        if ($stmt) {
+            $stmt->bind_param(
+                'isdsssss',
+                $userId,
+                $itemsJson,
+                $total,
+                $status,
+                $name,
+                $address,
+                $phone,
+                $paymentReference
+            );
+
+            if ($stmt->execute()) {
+                $oid = $stmt->insert_id ?: $conn->insert_id;
+                $_SESSION['cart'] = [];
+                $stmt->close();
+                header('Location: final.php?oid=' . urlencode((string) $oid));
+                exit;
+            }
+
+            $codError = 'Failed to place order. Please try again.';
+            $stmt->close();
+        } else {
+            $codError = 'Failed to prepare order statement.';
+        }
+    }
+}
+
 include 'includes/header.php';
+$publicKey = getenv('KHALTI_PUBLIC_KEY') ?: (defined('KHALTI_PUBLIC_KEY') ? KHALTI_PUBLIC_KEY : '');
 ?>
 
 <style>
@@ -84,7 +159,7 @@ include 'includes/header.php';
 .payment-form { margin-top:15px; }
 .payment-form label { display:block; margin-bottom:8px; color:#333; font-weight:500; }
 .payment-form input { width:100%; padding:10px; border:1px solid #ddd; border-radius:5px; font-size:16px; margin-bottom:15px; font-family:inherit; }
-.payment-form input:focus { outline:none; border-color:#88A71C; box-shadow:0 0 0 2px rgba(136,167,28,0.2); }
+.payment-form input:focus { outline:none; border-color:#1c2ca7ff; box-shadow:0 0 0 2px rgba(136,167,28,0.2); }
 @media (max-width:768px){ .payment-options { grid-template-columns:1fr; } }
 </style>
 
@@ -102,6 +177,12 @@ include 'includes/header.php';
         <p style="margin-top:15px;"><strong>Total: Rs. <?= $total ?></strong></p>
     </div>
 
+    <?php if ($codError): ?>
+        <div style="margin-bottom:20px;padding:12px;border-radius:6px;background:#fff0f0;border:1px solid #f5c2c7;color:#842029;">
+            <?= htmlspecialchars($codError) ?>
+        </div>
+    <?php endif; ?>
+
     <div class="payment-options">
 		<!-- Khalti Payment Option -->
 		<div class="payment-option">
@@ -115,14 +196,14 @@ include 'includes/header.php';
 					<input type="text" id="kh-address" required>
 				</label>
                 <label>Phone:
-                    <input type="tel" id="kh-phone" required>
+                    <input type="tel" id="kh-phone" required pattern="[0-9+\-\s]{7,20}">
                 </label>
 				<button type="button" class="btn" id="khalti-button">Pay with Khalti</button>
 			</form>
 		</div>
 
         <!-- eSewa Payment Option -->
-        <div class="payment-option">
+        <!-- <div class="payment-option">
             <h3>Pay Online - eSewa</h3>
             <form method="POST" action="esewa_pay.php">
                 <input type="hidden" name="tAmt" value="<?= $total ?>">
@@ -137,7 +218,7 @@ include 'includes/header.php';
                 <button type="submit" class="btn">Pay with eSewa</button>
             </form>
             <p class="muted">eSewa test mode (demo).</p>
-        </div>
+        </div> -->
 
         <!-- Cash on Delivery -->
         <div class="payment-option">
@@ -151,7 +232,7 @@ include 'includes/header.php';
                     <input type="text" name="address" required>
                 </label>
                 <label>Phone:
-                    <input type="tel" name="phone" required>
+                    <input type="tel" phone="phone" required pattern="[0-9+\-\s]{7,20}">
                 </label>
                 <button type="submit" class="btn">💵 Confirm COD</button>
             </form>
@@ -181,11 +262,11 @@ function window_location() {
 		var khaltiBtn = document.getElementById('khalti-button');
 		if(!khaltiBtn) return;
 		var amountPaisa = <?= intval($total * 100) ?>; // Khalti expects amount in paisa
-		var publicKey = ''; // Demo: add your own TEST public key if available
+		var publicKey = <?= json_encode($publicKey) ?>;
 		var config = {
 			publicKey: publicKey,
 			productIdentity: 'order_' + Date.now(),
-			productName: 'Aveelora Order',
+			productName: 'Paisa Order',
 			productUrl: <?= json_encode(window_location() . '/payment.php') ?>,
 			amount: amountPaisa,
 			eventHandler: {

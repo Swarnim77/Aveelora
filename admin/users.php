@@ -22,7 +22,7 @@ $users = $conn->query('SELECT id, name, email, role FROM users ORDER BY id DESC'
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #124597ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -96,13 +96,13 @@ $users = $conn->query('SELECT id, name, email, role FROM users ORDER BY id DESC'
             color: #333;
             margin-bottom: 20px;
             font-size: 24px;
-            border-bottom: 2px solid #88A71C;
+            border-bottom: 2px solid #1c2ca7ff;
             padding-bottom: 10px;
         }
         
         /* Buttons */
         .btn {
-            background-color: #88A71C;
+            background-color: #4025bbff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -168,7 +168,7 @@ $users = $conn->query('SELECT id, name, email, role FROM users ORDER BY id DESC'
         }
         
         .role-admin {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
         }
         
@@ -286,7 +286,7 @@ $users = $conn->query('SELECT id, name, email, role FROM users ORDER BY id DESC'
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Aveelora Admin Dashboard. All rights reserved.</p>
+        <p>&copy; 2025 Paisa Satne Thau Admin Dashboard. All rights reserved.</p>
         <p>Administrative Panel</p>
     </footer>
 </body>

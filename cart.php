@@ -12,7 +12,7 @@ include 'includes/header.php';
     }
     
     .cart-header h1 {
-        color: #88A71C;
+        color: #1c2ca7ff;
         margin-bottom: 10px;
         font-size: 28px;
     }
@@ -90,7 +90,7 @@ include 'includes/header.php';
     }
     
     .qty-btn {
-        background-color: #88A71C;
+        background-color: #1c2ca7ff;
         color: white;
         border: none;
         width: 35px;
@@ -120,7 +120,7 @@ include 'includes/header.php';
     
     .cart-item-total {
         font-weight: bold;
-        color: #88A71C;
+        color: #1c2ca7ff;
         font-size: 18px;
         margin-top: 10px;
     }
@@ -155,7 +155,7 @@ include 'includes/header.php';
     }
     
     .cart-summary h2 {
-        color: #333;
+        color: #271ba6ff;
         font-size: 24px;
         margin-bottom: 10px;
     }
@@ -163,7 +163,7 @@ include 'includes/header.php';
     .cart-total {
         font-size: 28px;
         font-weight: bold;
-        color: #88A71C;
+        color: #1c2ca7ff;
     }
     
     .clear-cart-btn {
@@ -183,7 +183,7 @@ include 'includes/header.php';
     }
     
     .checkout-btn {
-        background-color: #88A71C;
+        background-color: #1c2ca7ff;
         color: white;
         padding: 12px 30px;
         border: none;
@@ -243,9 +243,9 @@ include 'includes/header.php';
         </div>
         
         <div id="empty-cart">
-            <h2>Your cart is empty</h2>
-            <p>Add some products to your cart to get started!</p>
-            <a href="index.php" class="btn" style="margin-top: 20px;">Continue Shopping</a>
+            <h2>Paisa Satihalnus pachi bhau badhna sakcha</h2>
+            <p></p>
+            <a href="index.php" class="btn" style="margin-top: 20px;">Paisa Satda yaad garnuhola dhanyebad</a>
         </div>
         
         <div id="cart-items"></div>
@@ -475,7 +475,7 @@ function syncCartToSession() {
               window.location.href = 'payment.php';
           });
     } else {
-        alert('Your cart is empty!');
+        alert('AJa Peune plan Chaina?!');
     }
 }
 

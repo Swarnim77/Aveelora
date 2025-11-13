@@ -7,7 +7,7 @@ if(!isset($_SESSION['user']) || $_SESSION['user']['role']!=='admin'){
 }
 $msg = '';
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $msg = '<span style="color: #88A71C; font-weight: bold;">Settings updated successfully!</span>';
+    $msg = '<span style="color: #1c2ca7ff; font-weight: bold;">Settings updated successfully!</span>';
 }
 ?>
 <!DOCTYPE html>
@@ -25,7 +25,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #162e9aff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -99,7 +99,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #333;
             margin-bottom: 20px;
             font-size: 24px;
-            border-bottom: 2px solid #88A71C;
+            border-bottom: 2px solid #1c2ca7ff;
             padding-bottom: 10px;
         }
         
@@ -138,13 +138,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #88A71C;
+            border-color: #1c2ca7ff;
             box-shadow: 0 0 0 2px rgba(136, 167, 28, 0.2);
         }
         
         /* Buttons */
         .btn {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -190,7 +190,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
-            border-left: 4px solid #88A71C;
+            border-left: 4px solid #1c2ca7ff;
         }
         
         .info-box p {
@@ -266,12 +266,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h3>General Settings</h3>
                 <div class="form-group">
                     <label for="site_name">Site Name</label>
-                    <input type="text" id="site_name" name="site_name" value="Aveelora">
+                    <input type="text" id="site_name" name="site_name" value="Paisa Satne Thaui">
                 </div>
                 
                 <div class="form-group">
                     <label for="site_email">Site Email</label>
-                    <input type="email" id="site_email" name="site_email" value="aveeloranp@gmail.com">
+                    <input type="email" id="site_email" name="site_email" value="PaisaSatne Thaunp@gmail.com">
                 </div>
                 
                 <h3>Payment Settings</h3>
@@ -297,7 +297,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Aveelora Admin Dashboard. All rights reserved.</p>
+        <p>&copy; 2025 Currency exchange Admin Dashboard. All rights reserved.</p>
         <p>Administrative Panel</p>
     </footer>
 </body>

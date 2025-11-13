@@ -8,9 +8,12 @@ if(!isset($_SESSION['user']) || $_SESSION['user']['role']!=='admin'){
 
 // Get report data
 $total_orders = $conn->query('SELECT COUNT(*) as count FROM orders')->fetch_assoc()['count'];
-$total_revenue = $conn->query('SELECT SUM(total_amount) as total FROM orders WHERE status = "Paid"')->fetch_assoc()['total'] ?? 0;
-$cod_orders = $conn->query('SELECT COUNT(*) as count FROM orders WHERE status = "COD"')->fetch_assoc()['count'];
-$paid_orders = $conn->query('SELECT COUNT(*) as count FROM orders WHERE status = "Paid"')->fetch_assoc()['count'];
+// Revenue: sum of orders marked COMPLETED by admin
+$revRow = $conn->query("SELECT SUM(total_amount) as total FROM orders WHERE status = 'COMPLETED'")->fetch_assoc();
+$total_revenue = $revRow && $revRow['total'] !== null ? floatval($revRow['total']) : 0.0;
+$cod_orders = $conn->query("SELECT COUNT(*) as count FROM orders WHERE status = 'COD'")->fetch_assoc()['count'];
+// Online paid (Khalti) before completion
+$paid_orders = $conn->query("SELECT COUNT(*) as count FROM orders WHERE status = 'PAID_KHALTI'")->fetch_assoc()['count'];
 $total_products = $conn->query('SELECT COUNT(*) as count FROM products')->fetch_assoc()['count'];
 $total_users = $conn->query('SELECT COUNT(*) as count FROM users')->fetch_assoc()['count'];
 
@@ -35,7 +38,7 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
         
         body {
             font-family: 'Calibri', 'Roboto', 'Poppins', sans-serif;
-            background-color: #f5f5dc;
+            background-color: #122197ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -123,7 +126,7 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
         .stat-card .stat-value {
             font-size: 36px;
             font-weight: bold;
-            color: #88A71C;
+            color: #1c2ca7ff;
         }
         
         /* Content Card */
@@ -139,13 +142,13 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
             color: #333;
             margin-bottom: 20px;
             font-size: 24px;
-            border-bottom: 2px solid #88A71C;
+            border-bottom: 2px solid #1c2ca7ff;
             padding-bottom: 10px;
         }
         
         /* Buttons */
         .btn {
-            background-color: #88A71C;
+            background-color: #1c2ca7ff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -255,7 +258,7 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
         }
         
         .revenue {
-            color: #88A71C;
+            color: #1c2ca7ff;
             font-size: 32px;
             font-weight: bold;
         }
@@ -351,15 +354,15 @@ $top_products = $conn->query('SELECT name, COUNT(*) as order_count FROM products
         <!-- Sales Summary -->
         <div class="content-card">
             <h2>Sales Summary</h2>
-            <p style="color: #666; margin-bottom: 15px;">Total Revenue from Paid Orders: <strong style="color: #88A71C;">Rs. <?= number_format($total_revenue, 2) ?></strong></p>
+            <p style="color: #666; margin-bottom: 15px;">Total Revenue (Completed Orders): <strong style="color: #1c2ca7ff;">Rs. <?= number_format($total_revenue, 2) ?></strong></p>
             <p style="color: #666; margin-bottom: 15px;">Total Orders: <strong><?= $total_orders ?></strong></p>
-            <p style="color: #666; margin-bottom: 15px;">Average Order Value: <strong>Rs. <?= $total_orders > 0 ? number_format($total_revenue / $total_orders, 2) : '0.00' ?></strong></p>
+            <p style="color: #666; margin-bottom: 15px;">Average Order Value (Revenue/Orders): <strong>Rs. <?= $total_orders > 0 ? number_format($total_revenue / $total_orders, 2) : '0.00' ?></strong></p>
         </div>
     </main>
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Aveelora Admin Dashboard. All rights reserved.</p>
+        <p>&copy; 2025 Currency exchange Admin Dashboard. All rights reserved.</p>
         <p>Administrative Panel</p>
     </footer>
 </body>
